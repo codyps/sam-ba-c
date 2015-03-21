@@ -2,6 +2,36 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <assert.h>
+#include <limits.h>
+
+/*
+ * http://wiki.synchro.net/ref:xmodem
+ *
+ * This function calculates the CRC used by the XMODEM/CRC Protocol
+ * The first argument is a pointer to the message block.
+ * The second argument is the number of bytes in the message block.
+ * The function returns an integer which contains the CRC.
+ * The low order 16 bits are the coefficients of the CRC.
+ */
+static
+int crc_xmodem(char *ptr, int count)
+{
+	int crc, i;
+
+	crc = 0;
+	while (--count >= 0) {
+		crc = crc ^ (int)*ptr++ << 8;
+		for (i = 0; i < 8; ++i)
+			if (crc & 0x8000)
+				crc = crc << 1 ^ 0x1021;
+			else
+				crc = crc << 1;
+	}
+	return (crc & 0xFFFF);
+}
 
 static void usage_(const char *prgm, int e)
 {
@@ -12,8 +42,12 @@ static void usage_(const char *prgm, int e)
 		o = stdout;
 
 	fprintf(o,
-"usage: %s <sam-ba serial port> <action> <action args>...\n",
-		prgm ? prgm : "sam-ba");
+"usage: %s <sam-ba serial port> <action> <action args>...\n"
+"actions:\n"
+"	write <address> <file>\n"
+"	read  <address> <length> <file>\n"
+"	go    <address>\n"
+		, prgm ? prgm : "sam-ba");
 
 	exit(e);
 }
@@ -123,10 +157,27 @@ int main(int argc, char **argv)
 	char buf[1024];
 	size_t l = serial_read_to(port, buf, sizeof(buf), '\n');
 
-	serial_write(port, "V#");
-	l = serial_read_to(port, buf, sizeof(buf), '\n');
+	int i;
+	for (i = 2; i < argc; i++) {
+		const char *cmd =argv[i];
+		switch(*cmd) {
+			case 'v':
+				serial_write(port, "V#");
+				l = serial_read_to(port, buf, sizeof(buf), '\n');
+				printf("Version: %.*s\n", (int)l, buf);
+				break;
+			case 'w':
+				/* write file */
+				break;
+			case 'r':
+				/* read file */
+				break;
+			default:
+				fprintf(stderr, "Unknown command %s\n", cmd);
+				exit(EXIT_FAILURE);
+		}
 
-	printf("Version: %.*s\n", (int)l, buf);
+	}
 
 	return 0;
 }
