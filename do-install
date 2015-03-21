@@ -1,0 +1,8 @@
+#!/bin/sh
+
+set -euf
+
+cd "$(dirname "$0")"
+
+install -d "$DESTDIR$PREFIX/bin"
+install sam-ba "$DESTDIR$PREFIX/bin"
