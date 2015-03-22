@@ -326,8 +326,6 @@ int main(int argc, char **argv)
 				fprintf(stderr, "Unknown command %s\n", cmd);
 				exit(EXIT_FAILURE);
 		}
-
 	}
-
 	return 0;
 }
