@@ -188,6 +188,8 @@ static void xmodem_write(struct sp_port *port, unsigned long addr, const char *f
 					*ibuf);
 			exit(EXIT_FAILURE);
 		}
+
+		/* TODO: resend on NAK */
 	}
 }
 
@@ -286,6 +288,17 @@ int main(int argc, char **argv)
 				serial_write(port, "V#");
 				size_t l = serial_read_to(port, buf, sizeof(buf), '\n');
 				printf("Version: %.*s\n", (int)l, buf);
+			} break;
+			case 'g': {
+				if (argc - i < 2) {
+					fprintf(stderr, "Not enough args to go\n");
+					usage(EXIT_FAILURE);
+				}
+
+				long long a = strtoll(argv[i+1], NULL, 0);
+				snprintf(buf, sizeof(buf), "g%llX#", a);
+				serial_write(port, buf);
+				i += 1;
 			} break;
 			case 'w': {
 				/* write file */
