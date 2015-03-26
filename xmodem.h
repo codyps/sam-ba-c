@@ -26,7 +26,28 @@ struct xmodem_ctx {
 	/* we can either keep this buffer, or keep an offset & use file_op_at() */
 	unsigned char ct; /* current pkt count, should be initialized to 1 */
 	bool has_acked;   /* should be initialized to false */
-	unsigned char buf[128];
+
+	/*
+	 * states (send):
+	 * - waiting_for_C
+	 *   {
+	 * - waiting_for_file_op (if -EAGAIN is returned while reading), VAR=pos_to_read
+	 * - waiting_for_send    (if -EAGAIN is returned while sending), VAR=pos_to_send, total_len (encoded)
+	 * - waiting_for_recv    (if -EAGAIN is returned while recv polling for ACK), !!TIMEOUT POSSIBLE
+	 *   } VAR=ct
+	 */
+
+	/*
+	 * states (recv):
+	 * - waiting_for_send_C
+	 *   {
+	 * - waiting_for_recv (if -EAGAIN while recving), VAR=pos_to_read_into, !!TIMEOUT POSSIBLE
+	 * - waiting_for_file_op (if -EAGAIN while writing file), VAR=pos_to_write_from
+	 * - waiting_for_send (if -EAGAIN while acking)
+	 *   } VAR=ct
+	 */
+
+	unsigned char buf[1 + 1 + 1 + 128 + 2];
 };
 
 /*
