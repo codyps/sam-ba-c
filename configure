@@ -92,6 +92,6 @@ EOF
 }
 BINS=""
 
-bin sam-ba main.c
+bin sam-ba main.c xmodem.c
 
 echo default ${BINS}
