@@ -5,13 +5,22 @@ set -euf -o pipefail
 : ${CROSS_COMPILER:=}
 : ${HOST_CC:=cc}
 : ${CC:=${CROSS_COMPILER}cc}
+: ${OBJCOPY:=objcopy}
 
 : ${PKGCONFIG:=pkg-config}
 : ${WARN_FLAGS_C:="-Wstrict-prototypes -Wmissing-prototypes -Wold-style-definition -Wmissing-declarations -Wbad-function-cast"}
 : ${WARN_FLAGS:="-Wall -Wundef -Wshadow -Wcast-align -Wwrite-strings ${WARN_FLAGS_C}"}
-: ${COMMON_FLAGS:="-fsanitize=address -fsanitize=undefined -flto -Os -ggdb3 -fvar-tracking-assignments"}
-: ${CFLAGS:="${COMMON_FLAGS}"}
 : ${GIT_VER:=$(git describe --dirty=+ --always --abbrev=0)}
+
+# $1 = flag
+flag_x () {
+	for i in "$@"; do
+		${CC} ${CFLAGS:-} -c "$i" >/dev/null 2>&1 && echo "$i" || true
+	done
+}
+
+COMMON_FLAGS="$(flag_x -fsanitize=address -flto -fsanitize=undefined -fvar-tracking-assignments)"
+: ${CFLAGS:="${COMMON_FLAGS}"}
 
 LIBS="libserialport"
 LIB_CFLAGS="$(${PKGCONFIG} --cflags ${LIBS})"
