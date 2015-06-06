@@ -20,7 +20,7 @@ flag_x () {
 }
 
 COMMON_FLAGS="$(flag_x -fsanitize=address -flto -fsanitize=undefined -fvar-tracking-assignments)"
-: ${CFLAGS:="${COMMON_FLAGS}"}
+: ${CFLAGS:="${COMMON_FLAGS} -ggdb3 -Os"}
 
 LIBS="libserialport"
 LIB_CFLAGS="$(${PKGCONFIG} --cflags ${LIBS})"
