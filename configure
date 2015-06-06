@@ -12,14 +12,15 @@ set -euf -o pipefail
 : ${WARN_FLAGS:="-Wall -Wundef -Wshadow -Wcast-align -Wwrite-strings ${WARN_FLAGS_C}"}
 : ${GIT_VER:=$(git describe --dirty=+ --always --abbrev=0)}
 
-# $1 = flag
-flag_x () {
+# Given a series of flags for CC, echo (space seperated) the ones that the
+# compiler is happy with.
+cflag_x () {
 	for i in "$@"; do
 		${CC} ${CFLAGS:-} -c -x c "$i" /dev/null -o /dev/null >/dev/null 2>&1 && printf "%s " "$i" || true
 	done
 }
 
-COMMON_FLAGS="$(flag_x -fsanitize=address -flto -fsanitize=undefined -fvar-tracking-assignments)"
+COMMON_FLAGS="$(cflag_x -fsanitize=address -flto -fsanitize=undefined -fvar-tracking-assignments)"
 : ${CFLAGS:="${COMMON_FLAGS} -ggdb3 -Os"}
 
 LIBS="libserialport"
@@ -99,10 +100,10 @@ bin () {
 	cat <<EOF
 build $out : ccld $(to_obj "$@")
 EOF
-	BINS="$BINS $out"
+	TARGETS="$TARGETS $out"
 }
-BINS=""
+TARGETS=""
 
 bin sam-ba main.c
 
-echo default ${BINS}
+echo default ${TARGETS}
