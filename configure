@@ -15,7 +15,7 @@ set -euf -o pipefail
 # $1 = flag
 flag_x () {
 	for i in "$@"; do
-		${CC} ${CFLAGS:-} -c "$i" >/dev/null 2>&1 && echo "$i" || true
+		${CC} ${CFLAGS:-} -c -x c "$i" /dev/null >/dev/null 2>&1 && printf "%s " "$i" || true
 	done
 }
 
