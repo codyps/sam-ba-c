@@ -11,8 +11,8 @@
  */
 
 struct xmodem_ctx {
-	int (*send)(struct xmodem_ctx *ctx, void *buf, size_t bytes);
-	int (*recv)(struct xmodem_ctx *ctx, void *buf, size_t bytes);
+	int (*send)(struct xmodem_ctx *ctx, const void *buf, size_t bytes);
+	int (*recv)(struct xmodem_ctx *ctx,       void *buf, size_t bytes);
 
 	/*
 	 * either read or write depending on how we are called
