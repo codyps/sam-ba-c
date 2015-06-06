@@ -19,8 +19,10 @@
         struct __useless_struct_to_allow_trailing_semicolon__
 
 DEFINE_TRIVIAL_CLEANUP_FUNC(FILE*, fclose);
+DEFINE_TRIVIAL_CLEANUP_FUNC(struct sp_port*, sp_close);
 
 #define _cleanup_fclose_ _cleanup_(fclosep)
+#define _cleanup_sp_close_ _cleanup_(sp_closep)
 
 static FILE *
 xfopen(const char *path, const char *mode)
@@ -257,7 +259,7 @@ main(int argc, char **argv)
 	if (argc < 3)
 		usage(1);
 
-	struct sp_port *port;
+	_cleanup_sp_close_ struct sp_port *port = NULL;
 	int r = sp_get_port_by_name(argv[1], &port);
 	if (r < 0) {
 		fprintf(stderr, "Error getting port %s, %d\n",
