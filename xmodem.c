@@ -32,15 +32,8 @@ unsigned crc_xmodem(char *ptr, unsigned count)
 	return (crc & 0xFFFF);
 }
 
-void xmodem_write(struct sp_port *port, unsigned long addr, const char *file_name)
+void xmodem_write(struct sp_port *port, unsigned long addr, FILE *f)
 {
-	FILE *f = fopen(file_name, "r");
-	if (!f) {
-		fprintf(stderr, "Error opening file '%s': %s\n",
-				file_name, strerror(errno));
-		exit(EXIT_FAILURE);
-	}
-
 	/* SOH + pkt_ct + ~byte_count + bytes + crc */
 	char obuf[1 + 1 + 1 + 128 + 2];
 	char *data = obuf + 3;
@@ -115,15 +108,8 @@ void xmodem_write(struct sp_port *port, unsigned long addr, const char *file_nam
 }
 
 void xmodem_read(struct sp_port *port, unsigned long addr,
-		unsigned long count, const char *file_name)
+		unsigned long count, FILE *f)
 {
-	FILE *f = fopen(file_name, "w");
-	if (!f) {
-		fprintf(stderr, "Error opening file '%s': %s\n",
-				file_name, strerror(errno));
-		exit(EXIT_FAILURE);
-	}
-
 	/* SOH + pkt_ct + ~byte_count + bytes + crc */
 	char buf[1 + 1 + 1 + 128 + 2];
 

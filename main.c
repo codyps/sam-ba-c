@@ -7,8 +7,32 @@
 #include <assert.h>
 #include <limits.h>
 #include <errno.h>
+#include <error.h>
 
 #include "shared.h"
+
+
+#define _cleanup_(x) __attribute__((cleanup(x)))
+
+#define DEFINE_TRIVIAL_CLEANUP_FUNC(type, func)                 \
+        static inline void func##p(type *p) {                   \
+                if (*p)                                         \
+                        func(*p);                               \
+        }                                                       \
+        struct __useless_struct_to_allow_trailing_semicolon__
+
+DEFINE_TRIVIAL_CLEANUP_FUNC(FILE*, fclose);
+
+#define _cleanup_fclose_ _cleanup_(fclosep)
+
+static FILE *xfopen(const char *path, const char *mode)
+{
+	FILE *f = fopen(path, mode);
+	if (!f) {
+		error(EXIT_FAILURE, errno, "Could not open file '%s' with mode '%s'\n", path, mode);
+	}
+	return f;
+}
 
 static void usage_(const char *prgm, int e)
 {
@@ -158,7 +182,9 @@ int main(int argc, char **argv)
 					usage(EXIT_FAILURE);
 				}
 				long long a = strtoll(argv[i+1], NULL, 0);
-				xmodem_write(port, a, argv[i+2]);
+				_cleanup_fclose_ FILE *f = xfopen(argv[i+2], "r");
+				xmodem_write(port, a, f);
+				fclose(f);
 				i += 2;
 			} break;
 			case 'r': {
@@ -170,7 +196,8 @@ int main(int argc, char **argv)
 				}
 				long long a = strtoll(argv[i+1], NULL, 0);
 				long long l = strtoll(argv[i+2], NULL, 0);
-				xmodem_read(port, a, l, argv[i+3]);
+				_cleanup_fclose_ FILE *f = xfopen(argv[i+3], "w");
+				xmodem_read(port, a, l, f);
 				i += 3;
 			} break;
 			default:
